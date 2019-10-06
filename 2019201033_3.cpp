@@ -176,48 +176,93 @@ class heap
 
 };
 
+void merge_sort(ll *beg, ll *end)
+{
+	if(beg == end)
+		return;
+	int difference = end-beg;
+	merge_sort(beg, beg+difference/2);
+	merge_sort(beg+difference/2 + 1, end);
+	ll *temp = (ll *)malloc(sizeof(ll)*(difference+1));
+	ll *first = beg;
+	ll *second = beg+difference/2 + 1;
+	int counter=0;
+	while(first != beg+difference/2 + 1 && second != end+1)
+	{
+		//cout<<"first sec "<<*first<<' '<<*second<<endl;
+		if(*first < *second)
+		{
+			//cout<<"inserting first's "<<*first<<endl;
+			temp[counter] = *first;
+			++first;
+		}
+		else
+		{
+			//cout<<"inserting second's "<<*second<<endl;
+			temp[counter] = *second;
+			++second;	
+		}
+		++counter;
+	}
+	//cout<<"intermediate count :"<<counter<<endl;
+	if(counter < difference+1)
+	{
+		if(second == end+1)
+			while(counter < difference+1)
+			{
+				//cout<<"inserting first's "<<*first<<endl;
+				temp[counter] = *first;
+				++counter;
+				++first;
+			}
+		else
+			while(counter < difference+1)
+			{
+				//cout<<"inserting second's "<<*second<<endl;
+				temp[counter] = *second;
+				++counter;
+				++second;
+			}
+	}
+	ll *ptr;
+	ptr = beg;
+	/*cout<<"counter :"<<counter<<endl;
+	cout<<"temp conts :";
+	for(int lv=0;lv<counter;lv++)
+		cout<<temp[lv]<<' ';
+	cout<<endl;*/
+	for(int lv=0;lv<counter;lv++)
+	{
+		*(beg+lv) = temp[lv];
+		//++ptr;
+		//++lv;
+	}
+	delete temp;
+	/*cout<<"returning :";
+	for(ptr = beg; ptr <=end;ptr++)
+		cout<<*ptr<<' ';
+	cout<<endl;*/
+	//return beg;
+}
+
 
 int main()
 {
-	heap hp;
-	ll array[] = {5, 45, 2, 9, 3, 10, 7, 4, 15, 3, 0, 4};
-	cout<<"initialized\n";
-	hp.build_heap(array, array+11);
-	int count=8;
-	while(count--)
-	{
-		hp.print_heap();
-		//cout<<endl;
-		cout<<"popped out :"<<hp.top()<<endl;
-		hp.pop();
-	}
-	cout<<"pushing 4\n";
-	hp.push(4);
-	hp.print_heap();
-	cout<<"pushing 3\n";
-	hp.push(3);
-	hp.print_heap();
-	count=6;
-	while(count--)
-	{
-		hp.print_heap();
-		//cout<<endl;
-		cout<<"popped out :"<<hp.top()<<endl;
-		hp.pop();
-	}
-	hp.print_heap();
-	cout<<"pushing 5\n";
-	hp.push(5);
-	hp.print_heap();
-	cout<<"pushing 6\n";
-	hp.push(6);
-	hp.print_heap();
-	cout<<"pushing 1\n";
-	hp.push(1);
-	hp.print_heap();
-	cout<<"pushing 2\n";
-	hp.push(2);
-	hp.print_heap();
+	
+	ll array[] = {5, 0, 45, 2, 9, 3, 10, -96, -885,  7, 4, 15, 3, 0, 4};
+	//cout<<"size "<<sizeof(array)<<endl;
+	//cout<<"last "<<array[sizeof(array)/sizeof(array[0])-1]<<endl;
+	//ll *end=array;
+	//cout<<array<<' '<<end<<endl;
+	//int lv=11;
+	//while(lv--)
+	//	++end;
+	//cout<<array<<' '<<end<<endl;
+	//end = &array + sizeof(array)/sizeof(array[0])-1;
+	//end = end+11;
+	merge_sort(array, &array[sizeof(array)/sizeof(array[0])-1]);
+	for(int lv=0;lv<15;lv++)
+		cout<<array[lv]<<' ';
 }
 
 /**
