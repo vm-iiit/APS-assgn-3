@@ -1,21 +1,26 @@
 #include<iostream>
+#include<fstream>
+#include<vector>
+#include<math.h>
+#define maxfiles 5000                //.5 GB
+int chunk = 1000000;
 #define left (2*lv)
 #define right (2*lv+1)
 using namespace std;
-typedef int ll;
+typedef long long int ll;
 
 class heap
 {
 	private:
 		ll n;
-		ll *array;
+		pair<ll, ll> *array;
 		ll capacity;
 	public:
 		heap()
 		{
 			this->capacity = 5;
 			this->n = 0;
-			array = (ll *)malloc(sizeof(ll)*5);
+			array = (pair<ll, ll> *)malloc(sizeof(pair<ll, ll>)*5);
 		}
 		~heap()
 		{
@@ -30,9 +35,9 @@ class heap
 				return;
 			if(left <= n && right > n)
 			{
-				if(array[lv] > array[left])
+				if(array[lv].first > array[left].first)
 				{
-					ll temp = array[lv];
+					auto temp = array[lv];
 					array[lv] = array[left];
 					array[left] = temp;
 					fix(left);
@@ -44,33 +49,33 @@ class heap
 			{
 				//cout<<"parent :"<<array[lv]<<endl;
 				//cout<<"children :"<<array[left]<<' '<<array[right]<<endl;
-				if(array[lv] <= array[left] && array[lv] <= array[right])
+				if(array[lv].first <= array[left].first && array[lv].first <= array[right].first)
 					return;
-				else if(array[lv] > array[left] && array[lv] > array[right])
+				else if(array[lv].first > array[left].first && array[lv].first > array[right].first)
 				{
 					//cout<<"case 1\n";
-					ll smaller = (array[left] < array[right])?left:right;
+					ll smaller = (array[left].first < array[right].first)?left:right;
 					//cout<<"swapping "<<array[lv]<<" with "<<array[smaller]<<endl;
-					ll temp = array[smaller];
+					auto temp = array[smaller];
 					array[smaller] = array[lv];
 					array[lv] = temp;
 					fix(smaller);
 				}
-				else if(array[right] >= array[lv] && array[lv] > array[left] )
+				else if(array[right].first >= array[lv].first && array[lv].first > array[left].first )
 				{
 					//cout<<"case 2\n";
 					//cout<<"swapping "<<array[lv]<<" with "<<array[left]<<endl;
 					//ll smaller = (array[left] < array[right])?left:right;
-					ll temp = array[left];
+					auto temp = array[left];
 					array[left] = array[lv];
 					array[lv] = temp;
 					fix(left);
 				}
-				else if(array[left] >= array[lv] && array[lv]> array[right] )
+				else if(array[left].first >= array[lv].first && array[lv].first> array[right].first )
 				{
 					//cout<<"case 3\n";
 					//cout<<"swapping "<<array[lv]<<" with "<<array[right]<<endl;
-					ll temp = array[right];
+					auto temp = array[right];
 					array[right] = array[lv];
 					array[lv] = temp;
 					fix(right);
@@ -80,18 +85,18 @@ class heap
 			return;
 		}
 
-		void build_heap(ll *beg, ll *end)
+		void build_heap(pair<ll,ll> *beg, pair<ll,ll> *end)
 		{
 			ll eles = end-beg+1;
 			//cout<<"elemnts :"<<eles<<endl;
 			if(n)
 			{
-				array = (ll *)realloc(array, 2*eles*sizeof(ll));
+				array = (pair<ll,ll> *)realloc(array, 2*eles*sizeof(pair<ll,ll>));
 				//cout<<"reallocated memory\n";
 			}
 			else
 			{
-				array = (ll *)malloc(sizeof(2*eles*sizeof(ll)));
+				array = (pair<ll,ll> *)malloc(sizeof(2*eles*sizeof(pair<ll,ll>)));
 				//cout<<"allocated memory\n";
 			}
 			/*for(int i=1;i<=eles;i++)
@@ -100,7 +105,7 @@ class heap
 
 			capacity = 2*eles;
 			n = eles;
-			ll *ptr = beg;
+			pair<ll,ll> *ptr = beg;
 			
 			while(ptr-beg <= eles){
 				array[ptr-beg+1] = *ptr;
@@ -112,9 +117,9 @@ class heap
 
 			for(ll lv = n; lv>0; lv--)
 			{
-				cout<<"building\n";
+				//cout<<"building\n";
 				fix(lv);
-				this->print_heap();
+				//this->print_heap();
 			}
 			//cout<<"build finished\n";
 		}
@@ -128,7 +133,7 @@ class heap
 			}
 			cout<<"heap contents :";
 			for(int i=1;i<=n;i++)
-				cout<<array[i]<<' ';
+				cout<<array[i].first<<' ';
 			cout<<endl<<endl;
 		}
 
@@ -137,28 +142,28 @@ class heap
 			fix(lv);
 		}
 
-		ll top()
+		pair<ll,ll> top()
 		{
 			return array[1];
 		}
 
-		ll pop()
+		pair<ll,ll> pop()
 		{
-			ll ret = array[1];
+			auto ret = array[1];
 			array[1] = array[n];
 			n -= 1;
 			if(n)
 				heapify(1);
 			if(n < capacity/3 && n >10)
-				this->array = (ll *)realloc(array, sizeof(ll)*(capacity/3));	
+				this->array = (pair<ll, ll> *)realloc(array, sizeof(pair<ll, ll>)*(capacity/3));	
 			return ret;
 		}
 
-		void push(ll ele)
+		void push(pair<ll,ll> ele)
 		{
 			if(this->capacity <= this->n)
 			{
-				this->array = (ll *)realloc(array, sizeof(ll)*2*capacity);
+				this->array = (pair<ll, ll> *)realloc(array, sizeof(pair<ll, ll>)*2*capacity);
 				capacity *= 2;
 			}
 			n += 1;
@@ -166,12 +171,17 @@ class heap
 			ll lv = n;
 			while(lv > 1 && array[lv] < array[lv/2])
 			{
-				ll temp = array[lv];
+				auto temp = array[lv];
 				array[lv] = array[lv/2];
 				array[lv/2] = temp;
 				lv = lv/2;
 			}
 			return;
+		}
+
+		ll syze()
+		{
+			return this->n;
 		}
 
 };
@@ -180,13 +190,13 @@ void merge_sort(ll *beg, ll *end)
 {
 	if(beg == end)
 		return;
-	int difference = end-beg;
+	ll difference = end-beg;
 	merge_sort(beg, beg+difference/2);
 	merge_sort(beg+difference/2 + 1, end);
 	ll *temp = (ll *)malloc(sizeof(ll)*(difference+1));
 	ll *first = beg;
 	ll *second = beg+difference/2 + 1;
-	int counter=0;
+	ll counter=0;
 	while(first != beg+difference/2 + 1 && second != end+1)
 	{
 		//cout<<"first sec "<<*first<<' '<<*second<<endl;
@@ -231,7 +241,7 @@ void merge_sort(ll *beg, ll *end)
 	for(int lv=0;lv<counter;lv++)
 		cout<<temp[lv]<<' ';
 	cout<<endl;*/
-	for(int lv=0;lv<counter;lv++)
+	for(ll lv=0;lv<counter;lv++)
 	{
 		*(beg+lv) = temp[lv];
 		//++ptr;
@@ -246,37 +256,116 @@ void merge_sort(ll *beg, ll *end)
 }
 
 
-int main()
+int main(int argc, char *argv[])
 {
+	ifstream inpf;
+	ofstream opf;
+	inpf.open(argv[1], ios::binary);
+	inpf.seekg(0, ios::end);
+	ssize_t ip_size = inpf.tellg();
+	//inpf.seekg(0, ios::beg);
+	cout<<"size of input file :"<<ip_size<<endl<<" bytes\n";
+	int num_chunks;
+	num_chunks = ceil(float(float(ip_size)/float(chunk)));
+	do{
+		chunk *= 2;
+		num_chunks = ceil(float(float(ip_size)/float(chunk)));	
+	}while(num_chunks >=maxfiles);
 	
-	ll array[] = {5, 0, 45, 2, 9, 3, 10, -96, -885,  7, 4, 15, 3, 0, 4};
-	//cout<<"size "<<sizeof(array)<<endl;
-	//cout<<"last "<<array[sizeof(array)/sizeof(array[0])-1]<<endl;
-	//ll *end=array;
-	//cout<<array<<' '<<end<<endl;
-	//int lv=11;
-	//while(lv--)
-	//	++end;
-	//cout<<array<<' '<<end<<endl;
-	//end = &array + sizeof(array)/sizeof(array[0])-1;
-	//end = end+11;
-	merge_sort(array, &array[sizeof(array)/sizeof(array[0])-1]);
-	for(int lv=0;lv<15;lv++)
-		cout<<array[lv]<<' ';
+	cout<<"number of chunks :"<<num_chunks<<endl;
+	cout<<"chunk size :"<<chunk<<endl;
+	ofstream out_descriptors[num_chunks];
+	cout<<"descriptors created\n";
+	string filename = "temp_file";
+
+	int curr_chunk = 0;
+	ssize_t last_pos = 0;
+	ll ele;
+	
+	while(inpf.tellg() != -1)
+	{
+		inpf.seekg(last_pos, ios::beg);
+		//int dummy=15;
+		vector<ll> tvec;
+		while(inpf.tellg()-last_pos <= chunk /*&& inpf.tellg() <= ip_size*/ && inpf.tellg() != -1)
+		{
+
+			inpf>>ele;
+			//cout<<"read element "<<ele<<endl;
+			if(inpf.tellg() != -1)
+				tvec.push_back(ele);
+			//cout<<"read posn :"<<inpf.tellg()<<endl;
+
+		}
+		last_pos = inpf.tellg();
+		
+
+		merge_sort(&tvec[0], &tvec[tvec.size()-1]);
+		out_descriptors[curr_chunk].open(filename+to_string(curr_chunk));
+		for(ll lv=0; lv<tvec.size(); lv++)
+		{
+			//cout<<"write loop\n";
+			out_descriptors[curr_chunk]<<tvec[lv]<<endl;
+		}
+		cout<<"created chunk #"<<curr_chunk<<endl;
+		++curr_chunk;
+	}
+	cout<<"last val :"<<curr_chunk<<endl;
+	vector<pair<ll,ll>> tvec;
+	ifstream in_descriptors[num_chunks];
+	for(int lv=0; lv<curr_chunk;lv++)
+	{
+		in_descriptors[lv].open(filename+to_string(lv));
+		in_descriptors[lv]>>ele;
+		tvec.push_back(make_pair(ele, lv));
+	}
+	heap hp;
+	hp.build_heap(&tvec[0], &tvec[tvec.size()-1]);
+	//hp.print_heap();
+
+	opf.open(argv[2], ios::binary);
+	bool end[curr_chunk] = {false};
+
+	cout<<hp.syze()<<endl;
+	ll index;
+	bool terminate = false;
+	while(hp.syze() && !terminate)
+	{
+		pair<ll,ll> element = hp.top();
+		opf<<element.first<<endl;
+		index = element.second;
+		hp.pop();
+		cout<<"popped out\n";
+		in_descriptors[index]>>ele;
+		if(in_descriptors[index].tellg() == -1)
+		{
+			end[index] = true;
+			terminate = true;
+			for(int lv = (index+1)%curr_chunk; lv != index; lv = (lv+1)%curr_chunk)
+				if(end[lv]==false)
+				{
+					terminate=false;
+					in_descriptors[lv]>>ele;
+					hp.push(make_pair(ele, lv));
+					cout<<"pushed in\n";
+					break;
+				}
+		}
+		else
+		{
+			hp.push(make_pair(ele, index));
+			cout<<"pushed in\n";
+		}
+	}
+
+	opf.close();
+	inpf.close();
+	for(int lv=0;lv<curr_chunk;lv++)
+	{
+		in_descriptors[lv].close();
+		out_descriptors[lv].close();
+		remove((filename+to_string(lv)).c_str());
+	}
+
 }
 
-/**
- * Definition for singly-linked list.
- * struct ListNode {
- *     int val;
- *     ListNode *next;
- *     ListNode(int x) : val(x), next(NULL) {}
- * };
- */
-/*class Solution {
-public:
-    ListNode* mergeKLists(vector<ListNode*>& lists) {
-        
-        
-    }
-};*/
